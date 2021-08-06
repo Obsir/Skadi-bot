@@ -105,7 +105,6 @@ class Friends(Base):
                f"created_at='{self.created_at}', updated_at='{self.updated_at}')>"
 
 
-
 # qq群表
 class Group(Base):
     __tablename__ = f'{TABLE_PREFIX}_groups'
@@ -126,7 +125,6 @@ class Group(Base):
                             cascade="all, delete", passive_deletes=True)
     group_auth = relationship('AuthGroup', back_populates='auth_for_group', uselist=False,
                               cascade="all, delete", passive_deletes=True)
-
 
     def __init__(self, name, group_id, notice_permissions, command_permissions,
                  permission_level, created_at=None, updated_at=None):
@@ -233,6 +231,7 @@ class AuthGroup(Base):
         return f"<AuthGroup(group_id='{self.group_id}', auth_node='{self.auth_node}', " \
                f"allow_tag='{self.allow_tag}', deny_tag='{self.deny_tag}', auth_info='{self.auth_info}', " \
                f"created_at='{self.created_at}', updated_at='{self.updated_at}')>"
+
 
 # 记录表
 class History(Base):
@@ -394,7 +393,6 @@ class Bilidynamic(Base):
                f"created_at='{self.created_at}', updated_at='{self.updated_at}')>"
 
 
-
 # Pixiv tag表
 class PixivTag(Base):
     __tablename__ = f'{TABLE_PREFIX}_pixiv_tag'
@@ -545,4 +543,29 @@ class CoolDownEvent(Base):
     def __repr__(self):
         return f"<CoolDownEvent(event_type='{self.event_type}', stop_at='{self.stop_at}', plugin='{self.plugin}'," \
                f"group_id='{self.group_id}', user_id='{self.user_id}', description='{self.description}', " \
+               f"created_at='{self.created_at}', updated_at='{self.updated_at}')>"
+
+
+# 插件使用次数统计表
+class PluginStatistics(Base):
+    __tablename__ = f'{TABLE_PREFIX}_function_statistics'
+    __table_args__ = {'mysql_engine': 'InnoDB', 'mysql_charset': 'utf8mb4'}
+
+    # 表结构
+    id = Column(Integer, Sequence('function_statistics_id_seq'),
+                primary_key=True, nullable=False, index=True, unique=True)
+    plugin = Column(String(64), nullable=True, index=True, comment='plugin事件对应插件名')
+    created_at = Column(DateTime, server_default=func.now(), nullable=True)
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=True)
+    use_count = Column(Integer, default=0, nullable=False, comment='插件使用次数')
+
+    def __init__(self, plugin=None,
+                 created_at=None, updated_at=None):
+        self.plugin = plugin
+        self.created_at = created_at
+        self.updated_at = updated_at
+
+    def __repr__(self):
+        return f"<FunctionStatistics(plugin='{self.plugin}'," \
+               f"plugin='{self.plugin}', use_count='{self.use_count}', " \
                f"created_at='{self.created_at}', updated_at='{self.updated_at}')>"

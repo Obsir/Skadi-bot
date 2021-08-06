@@ -10,6 +10,7 @@ from .pixivtag import DBPixivtag
 from .subscription import DBSubscription
 from .user import DBUser
 from .status import DBStatus
+from .function_statistics import DBPluginStatistics
 
 __all__ = [
     'DBAuth',
@@ -24,4 +25,5 @@ __all__ = [
     'DBSubscription',
     'DBUser',
     'DBStatus',
+    'DBPluginStatistics',
 ]

@@ -8,7 +8,7 @@ from .permission_utils import *
 from .http_fetcher import HttpFetcher
 from .picture_encoder import PicEncoder
 from .zip_utils import create_zip_file, create_7z_file
-
+from .plugin_statistics_utils import *
 
 def init_export(
         plugin_export: Export,
@@ -64,5 +64,6 @@ __all__ = [
     'HttpFetcher',
     'PicEncoder',
     'create_zip_file',
-    'create_7z_file'
+    'create_7z_file',
+    'add_plugin_use_count'
 ]

@@ -7,7 +7,7 @@ from .class_result import Result
 from .model import \
     DBUser, DBFriend, DBGroup, DBSubscription, DBDynamic, \
     DBPixivillust, DBPixivtag, DBPixivision, \
-    DBHistory, DBAuth, DBCoolDownEvent, DBStatus
+    DBHistory, DBAuth, DBCoolDownEvent, DBStatus, DBPluginStatistics
 
 
 __all__ = [
@@ -25,4 +25,5 @@ __all__ = [
     'DBCoolDownEvent',
     'Result',
     'DBStatus',
+    'DBPluginStatistics',
 ]
