@@ -11,7 +11,7 @@ from nonebot.drivers.fastapi import Config
 # Custom your logger
 # 
 from nonebot.log import logger, default_format
-from skadi.configs import path_config
+from skadi_core.configs import path_config
 # win环境下proxy配置
 import sys
 import asyncio
@@ -45,6 +45,7 @@ nonebot.init()
 config = nonebot.get_driver().config
 config.root_path_ = bot_runtime_path
 config.bot_res_path = bot_res_path
+
 path_config.init_plugin_res_path(config)
 
 app = nonebot.get_asgi()
