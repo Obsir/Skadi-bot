@@ -56,7 +56,7 @@ driver.register_adapter("cqhttp", CQHTTPBot)
 # driver.register_adapter("mirai", MIRAIBot)
 
 nonebot.load_builtin_plugins()
-nonebot.load_plugins("skadi/plugins")
+nonebot.load_plugins("skadi_core/plugins")
 nonebot.load_from_toml("pyproject.toml")
 
 # Modify some config / config depends on loaded configs

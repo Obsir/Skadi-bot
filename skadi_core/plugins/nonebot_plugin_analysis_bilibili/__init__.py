@@ -18,7 +18,7 @@ __plugin_auth_node__ = [
 # Init plugin export
 init_export(export(), __plugin_name__, __plugin_usage__, __plugin_auth_node__)
 
-analysis_bili = on_regex("(b23.tv)|(live.bilibili.com)|(bilibili.com/video)|(bilibili.com/read)|(bilibili.com/bangumi)|(^(CV|cv)(\d+))|(^(BV|bv)([0-9A-Za-z]{10}))|(^(av|AV)([0-9]+)(/.*|\\?.*|)$)|(\[\[QQ小程序\]哔哩哔哩\])|(QQ小程序&amp;#93;哔哩哔哩)|(QQ小程序&#93;哔哩哔哩)")
+analysis_bili = on_regex("(b23.tv)|(live.bilibili.com)|(bilibili.com/video)|(bilibili.com/read)|(bilibili.com/bangumi)|(^(CV|cv)(\d+))|(^(BV|bv)([0-9A-Za-z]{10}))|(^(av|AV)([0-9]+)(/.*|\\?.*|)$)|(\[\[QQ小程序\]哔哩哔哩\])|(QQ小程序&amp;#93;哔哩哔哩)|(QQ小程序&#93;哔哩哔哩)", priority=10)
 
 @analysis_bili.handle()
 async def analysis_main(bot: Bot, event: Event, state: dict):

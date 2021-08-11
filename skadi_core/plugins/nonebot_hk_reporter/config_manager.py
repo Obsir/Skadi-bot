@@ -171,9 +171,9 @@ async def parse_group_number(bot: Bot, event: Event, state: T_State):
 
 
 add_sub_matcher = on_command("添加订阅", state=init_permission_state(name='添加订阅', command=True, level=20),
-                             permission=GROUP_ADMIN | GROUP_OWNER | SUPERUSER, priority=5)
+                             permission=GROUP_ADMIN | GROUP_OWNER | SUPERUSER, priority=20, block=True)
 do_add_sub(add_sub_matcher)
-manage_add_sub_mather = on_command('管理-添加订阅', permission=SUPERUSER, priority=5)
+manage_add_sub_mather = on_command('管理-添加订阅', permission=SUPERUSER, priority=20)
 
 
 @manage_add_sub_mather.got('_user_id', "群号", parse_group_number)
@@ -184,9 +184,9 @@ async def handle(bot: Bot, event: Event, state: T_State):
 do_add_sub(manage_add_sub_mather)
 
 query_sub_macher = on_command("查询订阅", state=init_permission_state(name='查询订阅', command=True, level=20),
-                              priority=5)
+                              priority=20, block=True)
 do_query_sub(query_sub_macher)
-manage_query_sub_mather = on_command('管理-查询订阅', permission=SUPERUSER, priority=5)
+manage_query_sub_mather = on_command('管理-查询订阅', permission=SUPERUSER, priority=20)
 
 
 @manage_query_sub_mather.got('_user_id', "群号", parse_group_number)
@@ -196,10 +196,10 @@ async def handle(bot: Bot, event: Event, state: T_State):
 
 do_query_sub(manage_query_sub_mather)
 
-del_sub_macher = on_command("删除订阅", permission=GROUP_ADMIN | GROUP_OWNER | SUPERUSER, priority=5,
-                            state=init_permission_state(name='删除订阅', command=True, level=20))
+del_sub_macher = on_command("删除订阅", permission=GROUP_ADMIN | GROUP_OWNER | SUPERUSER, priority=20,
+                            state=init_permission_state(name='删除订阅', command=True, level=20), block=True)
 do_del_sub(del_sub_macher)
-manage_del_sub_mather = on_command('管理-删除订阅', permission=SUPERUSER, priority=5)
+manage_del_sub_mather = on_command('管理-删除订阅', permission=SUPERUSER, priority=20)
 
 
 @manage_del_sub_mather.got('_user_id', "群号", parse_group_number)

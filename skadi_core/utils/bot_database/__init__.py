@@ -7,7 +7,8 @@ from .class_result import Result
 from .model import \
     DBUser, DBFriend, DBGroup, DBSubscription, DBDynamic, \
     DBPixivillust, DBPixivtag, DBPixivision, \
-    DBHistory, DBAuth, DBCoolDownEvent, DBStatus, DBPluginStatistics
+    DBHistory, DBAuth, DBCoolDownEvent, DBStatus, DBPluginStatistics, \
+    DBArknights
 
 
 __all__ = [

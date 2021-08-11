@@ -3,6 +3,9 @@ import os
 
 def init_plugin_res_path(bot_config):
     root_path = bot_config.bot_res_path
+    ark_gamedata_path = os.path.join(root_path, 'arknights')
+    if not os.path.exists(ark_gamedata_path):
+        os.makedirs(ark_gamedata_path)
     pixiv_path = os.path.join(root_path, 'pixiv')
     if not os.path.exists(pixiv_path):
         os.makedirs(pixiv_path)
@@ -23,3 +26,4 @@ def init_plugin_res_path(bot_config):
     bot_config.nhentai_path = nhentai_path
     bot_config.text2img_path = text2img_path
     bot_config.hk_reporter_config_path = hk_reporter_config_path
+    bot_config.ark_gamedata_path = ark_gamedata_path

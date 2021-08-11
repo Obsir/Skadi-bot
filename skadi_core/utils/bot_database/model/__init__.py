@@ -11,6 +11,7 @@ from .subscription import DBSubscription
 from .user import DBUser
 from .status import DBStatus
 from .function_statistics import DBPluginStatistics
+from .arknights import DBArknights
 
 __all__ = [
     'DBAuth',
@@ -26,4 +27,5 @@ __all__ = [
     'DBUser',
     'DBStatus',
     'DBPluginStatistics',
+    'DBArknights',
 ]
