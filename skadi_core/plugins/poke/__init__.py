@@ -61,5 +61,5 @@ poke_ = on_notice(priority=5, block=False, state=init_permission_state(
 async def _poke_(bot: Bot, event: PokeNotifyEvent, state: T_State):
     if event.self_id == event.target_id:
         _clmt.add(event.user_id)
-        if _clmt.check(event.user_id) or random.random() < 0.3:
+        if _clmt.check(event.user_id) or random.random() < 0.7:
             await poke_.finish(random.choice(poke__reply), at_sender=True)

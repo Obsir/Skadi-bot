@@ -5,6 +5,7 @@ from nonebot.permission import SUPERUSER
 from nonebot.typing import T_State
 from nonebot.adapters.cqhttp.bot import Bot
 from nonebot.adapters.cqhttp.event import MessageEvent
+from nonebot.adapters.cqhttp.permission import GROUP_ADMIN, GROUP_OWNER, GROUP
 from skadi_core.utils.bot_database import DBUser, DBGroup, DBAuth
 from skadi_core.utils.plugin_utils import init_export
 
@@ -23,7 +24,7 @@ __plugin_usage__ = r'''【SkadiAuth 授权管理插件】
 init_export(export(), __plugin_name__, __plugin_usage__)
 
 # 注册事件响应器
-skadiauth = on_command('SkadiAuth', rule=to_me(), aliases={'skadiAuth', 'sauth'},
+skadiauth = on_command('SkadiAuth', aliases={'skadiAuth', 'sauth', 'skadiauth'},
                        permission=SUPERUSER, priority=10, block=True)
 
 
@@ -61,9 +62,9 @@ async def handle_sub_command(bot: Bot, event: MessageEvent, state: T_State):
 async def handle_list_node(bot: Bot, event: MessageEvent, state: T_State):
     sub_command = state["sub_command"]
     if sub_command == 'list':
-        detail_type = event.dict().get(f'{event.get_type()}_type')
+        detail_type = eval(f'event.{event.get_type()}_type')
         if detail_type == 'group':
-            group_id = event.dict().get('group_id')
+            group_id = event.group_id
             _res = await DBAuth.list(auth_type='group', auth_id=group_id)
             if _res.success():
                 node_text = '\n'.join('/'.join(map(str, n)) for n in _res.result)
@@ -72,7 +73,7 @@ async def handle_list_node(bot: Bot, event: MessageEvent, state: T_State):
             else:
                 await skadiauth.finish('发生了意外的错误QAQ, 请稍后再试')
         elif detail_type == 'private':
-            user_id = event.dict().get('user_id')
+            user_id = event.user_id
             _res = await DBAuth.list(auth_type='user', auth_id=user_id)
             if _res.success():
                 node_text = '\n'.join('/'.join(map(str, n)) for n in _res.result)

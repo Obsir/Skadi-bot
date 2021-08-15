@@ -15,7 +15,7 @@ class ArkMaterialHandler:
     def __init__(self):
         self.init_finish = False
 
-    async def init(self):
+    async def init(self, *args, **kwargs):
         if self.init_finish:
             return
         self.keywords = []
@@ -37,7 +37,7 @@ class ArkMaterialHandler:
         self.keyword = self.material_list + ['材料']
         self.init_finish = True
 
-    async def action(self, name) -> Result.AnyResult:
+    async def action(self, name, *args, **kwargs) -> Result.AnyResult:
         if not self.init_finish:
             await self.init()
         msg_words = sorted(

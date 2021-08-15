@@ -2,6 +2,7 @@ from nonebot import logger, get_driver
 import os
 import json
 from .utils import *
+from .initData import InitData
 from ..plugin_utils import HttpFetcher
 import re
 import aiofiles
@@ -61,7 +62,7 @@ class ArkGameData:
         else:
             logger.error(f'ArkGameData | 重置卡池配置和信息 - 失败, error: {_res.info}')
 
-        for operator_pool in operator_pool_list:
+        for operator_pool in InitData.operator_pool_list:
             _res = await db_ark.add_operator_pool(**operator_pool)
             if _res.success():
                 logger.debug(f'ArkGameData | 更新卡池 - {operator_pool["pool_name"]} 成功')
@@ -69,7 +70,7 @@ class ArkGameData:
                 logger.error(
                     f'ArkGameData | 更新卡池 - {operator_pool["pool_name"]} 失败, error: {_res.info}')
 
-        for operator_gacha_config in operator_gacha_config_list:
+        for operator_gacha_config in InitData.operator_gacha_config_list:
             _res = await db_ark.add_operator_gacha_config(**operator_gacha_config)
             if _res.success():
                 logger.debug(f'ArkGameData | 更新卡池配置 - {operator_gacha_config["operator_name"]} 成功')

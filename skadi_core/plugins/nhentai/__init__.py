@@ -14,7 +14,7 @@ from skadi_core.utils.nhentai_utils import NhentaiGallery
 from nonebot.permission import SUPERUSER
 
 # Custom plugin usage text
-__plugin_name__ = 'nh'
+__plugin_name__ = 'NHentai'
 __plugin_usage__ = r'''【nh】
 神秘的插件
 仅限群聊使用

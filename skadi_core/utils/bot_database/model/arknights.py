@@ -30,7 +30,7 @@ class DBArknights(metaclass=Singleton):
                 async with session.begin():
                     new_data = model(*args, **kwargs, created_at=datetime.now())
                     session.add(new_data)
-                    result = Result.IntResult(error=False, info='Success added', result=0)
+                    result = Result.IntResult(error=False, info='Success added', result=new_data)
                 await session.commit()
             except MultipleResultsFound:
                 await session.rollback()
@@ -205,7 +205,7 @@ class DBArknights(metaclass=Singleton):
                 try:
                     session_result = await session.execute(select(Operator).filter(Operator.available == 1).filter(
                         or_(Operator.in_limit.in_([limit, 0]), Operator.operator_name.in_(extra))))
-                    operators = session_result.fetchall()
+                    operators = session_result.scalars().all()
                     result = Result.AnyResult(error=False, info='Success', result=operators)
                 except NoResultFound:
                     result = Result.AnyResult(error=True, info='NoResultFound', result=None)
@@ -744,4 +744,90 @@ class DBArknights(metaclass=Singleton):
                 except Exception as e:
                     await session.rollback()
                     result = Result.IntResult(error=True, info=repr(e), result=-1)
+        return result
+
+    async def get_gacha_pool(self, user_id=None):
+        async_session = DBSession().get_async_session()
+        async with async_session() as session:
+            async with session.begin():
+                try:
+                    where = (f'pool_id IN (SELECT gacha_pool FROM {UserGacha.__tablename__} WHERE user_id = %s)' % user_id) if user_id else None
+                    if where:
+                        sql = f'SELECT * FROM {OperatorPool.__tablename__} WHERE {where} '
+                    else:
+                        sql = f'SELECT * FROM {OperatorPool.__tablename__}'
+                    session_result = await session.execute(sql)
+                    if user_id:
+                        result = session_result.fetchone()
+                    else:
+                        result = session_result.fetchall()
+                    result = Result.AnyResult(error=False, info='Success', result=result)
+                except NoResultFound:
+                    result = Result.AnyResult(error=True, info='NoResultFound', result=None)
+                except MultipleResultsFound:
+                    result = Result.IntResult(error=True, info='MultipleResultsFound', result=-1)
+                except Exception as e:
+                    result = Result.AnyResult(error=True, info=repr(e), result=None)
+        return result
+
+    async def set_gacha_pool(self, user_id, pool_id):
+        async_session = DBSession().get_async_session()
+        async with async_session() as session:
+            try:
+                async with session.begin():
+                    session_result = await session.execute(
+                        select(UserGacha).where(UserGacha.user_id == user_id)
+                    )
+                    user_gacha = session_result.scalar_one()
+                    user_gacha.gacha_pool = pool_id
+                    result = Result.IntResult(error=False, info='Success upgraded', result=0)
+                await session.commit()
+            except NoResultFound:
+                await session.rollback()
+                result = Result.IntResult(error=True, info='NoResultFound', result=-1)
+            except MultipleResultsFound:
+                await session.rollback()
+                result = Result.IntResult(error=True, info='MultipleResultsFound', result=-1)
+            except Exception as e:
+                await session.rollback()
+                result = Result.IntResult(error=True, info=repr(e), result=-1)
+        return result
+
+    async def set_break_even(self, user_id, break_even):
+        async_session = DBSession().get_async_session()
+        async with async_session() as session:
+            try:
+                async with session.begin():
+                    session_result = await session.execute(
+                        select(UserGacha).where(UserGacha.user_id == user_id)
+                    )
+                    user_gacha = session_result.scalar_one()
+                    user_gacha.gacha_break_even = break_even
+                    result = Result.IntResult(error=False, info='Success upgraded', result=0)
+                await session.commit()
+            except NoResultFound:
+                await session.rollback()
+                result = Result.IntResult(error=True, info='NoResultFound', result=-1)
+            except MultipleResultsFound:
+                await session.rollback()
+                result = Result.IntResult(error=True, info='MultipleResultsFound', result=-1)
+            except Exception as e:
+                await session.rollback()
+                result = Result.IntResult(error=True, info=repr(e), result=-1)
+        return result
+
+    async def get_gacha_user(self, user_id) -> Result.AnyResult:
+        async_session = DBSession().get_async_session()
+        async with async_session() as session:
+            async with session.begin():
+                try:
+                    session_result = await session.execute(select(UserGacha).filter(UserGacha.user_id == user_id))
+                    user_gacha = session_result.scalar_one()
+                    result = Result.AnyResult(error=False, info='Success', result=user_gacha)
+                except NoResultFound:
+                    result = await self.__add(UserGacha, user_id)
+                except MultipleResultsFound:
+                    result = Result.AnyResult(error=True, info='MultipleResultsFound', result=None)
+                except Exception as e:
+                    result = Result.AnyResult(error=True, info=repr(e), result=None)
         return result

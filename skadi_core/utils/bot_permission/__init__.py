@@ -17,22 +17,19 @@ async def handle_plugin_permission(matcher: Matcher, bot: Bot, event: MessageEve
         private_mode = False
     else:
         private_mode = False
-
-    group_id = event.dict().get('group_id')
-    user_id = event.dict().get('user_id')
+    user_id = event.user_id
+    if not private_mode:
+        group_id = event.group_id
 
     global_config = get_driver().config
     superusers = global_config.superusers
-
     # 忽略超级用户
     if user_id in [int(x) for x in superusers]:
         return
-
     matcher_default_state = matcher.state
     matcher_command_permission = matcher_default_state.get('_command_permission')
     matcher_permission_level = matcher_default_state.get('_permission_level')
     matcher_auth_node = matcher_default_state.get('_auth_node')
-
     # 检查command/friend_private权限
     if private_mode:
         if matcher_command_permission:

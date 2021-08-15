@@ -3,7 +3,7 @@ from .analysis_bilibili import b23_extract, bili_keyword
 from nonebot import on_regex, export
 from nonebot.adapters import Bot, Event
 from skadi_core.utils.plugin_utils import init_export, init_permission_state
-__plugin_name__ = 'nh'
+__plugin_name__ = 'bilibili的小程序/链接'
 __plugin_usage__ = r'''【bilibili的小程序/链接】
 群聊/私聊
 

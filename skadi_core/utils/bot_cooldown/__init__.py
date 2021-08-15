@@ -11,7 +11,7 @@ from nonebot.message import run_preprocessor
 from nonebot.typing import T_State
 from nonebot.matcher import Matcher
 from nonebot.adapters.cqhttp.bot import Bot
-from nonebot.adapters.cqhttp.event import MessageEvent
+from nonebot.adapters.cqhttp.event import MessageEvent, GroupMessageEvent, PrivateMessageEvent
 from ..plugin_utils import \
     check_and_set_global_cool_down, check_and_set_plugin_cool_down, \
     check_and_set_group_cool_down, check_and_set_user_cool_down, PluginCoolDown
@@ -20,12 +20,17 @@ from ..bot_database import DBCoolDownEvent, DBAuth
 
 @run_preprocessor
 async def handle_plugin_cooldown(matcher: Matcher, bot: Bot, event: MessageEvent, state: T_State):
-    group_id = event.dict().get('group_id')
-    user_id = event.dict().get('user_id')
-
+    if isinstance(event, PrivateMessageEvent):
+        private_mode = True
+    elif isinstance(event, GroupMessageEvent):
+        private_mode = False
+    else:
+        private_mode = False
+    if not private_mode:
+        group_id = event.group_id
+    user_id = event.user_id
     global_config = get_driver().config
     superusers = global_config.superusers
-
     # 忽略超级用户
     if user_id in [int(x) for x in superusers]:
         return
@@ -37,7 +42,7 @@ async def handle_plugin_cooldown(matcher: Matcher, bot: Bot, event: MessageEvent
     # 处理插件冷却
     # 冷却处理优先级: 全局>插件>群组>用户
     # 冷却限制优先级: 用户>群组>插件>全局
-    plugin_name = matcher.module
+    plugin_name = matcher.module.__module_name__
     plugin = get_plugin(plugin_name)
     plugin_cool_down_list = plugin.export.get('cool_down')
 

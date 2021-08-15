@@ -702,6 +702,36 @@ class OperatorGachaConfig(Base):
                f"operator_type='{self.operator_type}')>"
 
 
+class UserGacha(Base):
+    __tablename__ = f'{TABLE_PREFIX}_user_gacha'
+    __table_args__ = {'mysql_engine': 'InnoDB', 'mysql_charset': 'utf8mb4'}
+
+    # 表结构
+    user_gacha_id = Column(Integer, Sequence('user_gacha_id_seq'), primary_key=True, nullable=False, index=True,
+                     unique=True)
+    user_id = Column(Integer, nullable=False)
+    gacha_break_even = Column(Integer, default=0)
+    gacha_pool = Column(Integer, default=1)
+
+    created_at = Column(DateTime, server_default=func.now(), nullable=True)
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=True)
+
+    def __init__(self, user_id, gacha_break_even=0, gacha_pool=1, created_at=None, updated_at=None):
+        self.user_id = user_id
+        self.gacha_break_even = gacha_break_even
+        self.gacha_pool = gacha_pool
+
+        self.created_at = created_at
+        self.updated_at = updated_at
+
+    def __getitem__(self, item):
+        return eval(f'self.{item}')
+
+    def __repr__(self):
+        return f"<UserGacha(user_id='{self.user_id}', gacha_break_even='{self.gacha_break_even}', " \
+               f"gacha_pool='{self.gacha_pool}')>"
+
+
 class OperatorPool(Base):
     __tablename__ = f'{TABLE_PREFIX}_operator_pool'
     __table_args__ = {'mysql_engine': 'InnoDB', 'mysql_charset': 'utf8mb4'}

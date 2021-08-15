@@ -3,13 +3,13 @@ from nonebot import logger
 from .game_data import ArkGameData
 from .utils import *
 from ..bot_database import Result
-
+import asyncio
 
 class ArkEnemyHandler:
     def __init__(self):
         self.init_finish = False
 
-    async def init(self):
+    async def init(self, *args, **kwargs):
         if self.init_finish:
             return
         # TODO async init
@@ -22,7 +22,7 @@ class ArkEnemyHandler:
             logger.error(f"ArkEnemyHandler | {e.__repr__()} 请更新明日方舟数据")
         self.init_finish = True
 
-    async def action(self, enemy_name) -> Result.AnyResult:
+    async def action(self, enemy_name, *args, **kwargs) -> Result.AnyResult:
         if not self.init_finish:
             await self.init()
 
@@ -30,13 +30,13 @@ class ArkEnemyHandler:
             r = re.search(re.compile(reg), enemy_name)
             if r:
                 enemy_name = r.group(1)
-                result = self.find_enemy(enemy_name)
+                result = await self.find_enemy(enemy_name)
                 if result.success():
                     return result
 
-        return Result.AnyResult(error=True, info="无数据", result='博士，没有找到%s的资料呢 >.<' % enemy_name)
+        return Result.AnyResult(error=True, info="无数据", result='博士，没有找到%s的资料呢' % enemy_name)
 
-    def find_enemy(self, enemy_name):
+    async def find_enemy(self, enemy_name):
         name = find_similar_string(enemy_name, list(self.enemies.keys()))
         if name:
             try:
@@ -87,16 +87,19 @@ class ArkEnemyHandler:
 
                 icons = [
                     {
-                        'path': 'resource/images/enemy_name/%s.png' % data['enemyId'],
+
+                        'path': os.path.join(ARK_GAMEDATA_PATH, 'images', 'enemy_name', '%s.png' % data['enemyId']),
                         'size': (80, 80),
                         'pos': (10, 30)
                     }
                 ]
-                return Result.AnyResult(error=False, info="", result=text)
+                result = await asyncio.get_event_loop().run_in_executor(None, create_image, text, icons)
+                return Result.AnyResult(error=False, info="", result="base64://" + result)
             except Exception as e:
-                return Result.AnyResult(error=True, info=e.__repr__(), result='博士，没有找到%s的资料呢 >.<' % enemy_name)
+                logger.error(f'ArkEnemyHandler | error: {e}')
+                return Result.AnyResult(error=True, info=e.__repr__(), result=None)
         else:
-            return Result.AnyResult(error=True, info="ArkEnemyHandler | 敌人名称无匹配", result='博士，没有找到%s的资料呢 >.<' % enemy_name)
+            return Result.AnyResult(error=True, info="ArkEnemyHandler | 敌人名称无匹配", result=None)
 
     @staticmethod
     def get_value(key, source):

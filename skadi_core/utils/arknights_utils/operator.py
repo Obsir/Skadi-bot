@@ -29,7 +29,7 @@ class ArkOperatorHandler:
 
         self.init_finish = False
 
-    async def init(self):
+    async def init(self, *args, **kwargs):
         if self.init_finish:
             return
         await self.ark_material_costs_handler.init()
@@ -44,7 +44,7 @@ class ArkOperatorHandler:
 
         self.init_finish = True
 
-    async def action(self, data) -> Result.AnyResult:
+    async def action(self, data, *args, **kwargs) -> Result.AnyResult:
         if not self.init_finish:
             await self.init()
         db_ark = DBArknights()

@@ -1,5 +1,5 @@
 import asyncio
-from nonebot import CommandGroup, on_command, export, logger
+from nonebot import CommandGroup, on_command, export, logger, get_driver
 from nonebot.rule import to_me
 from nonebot.permission import SUPERUSER
 from nonebot.typing import T_State
@@ -8,7 +8,8 @@ from nonebot.adapters.cqhttp.event import MessageEvent, GroupMessageEvent, Priva
 from nonebot.adapters.cqhttp.permission import GROUP, PRIVATE_FRIEND
 from nonebot.adapters.cqhttp import MessageSegment
 from skadi_core.utils.plugin_utils import init_export, init_permission_state, PluginCoolDown
-from skadi_core.utils.arknights_utils import ArkGameData, ArkEnemyHandler, ArkOperatorHandler, ArkMaterialHandler, utils
+from skadi_core.utils.arknights_utils import ArkGameData, ArkEnemyHandler, ArkOperatorHandler, ArkMaterialHandler, \
+    utils, ArkGaChaHandler
 import re
 
 # Custom plugin usage text
@@ -28,13 +29,11 @@ moepic
 
 
 **Usage**
-/明日方舟 [十]连
-/明日方舟 查询敌人 [名称]
-/明日方舟 更新 - 超级管理员限定
-
-**SuperUser Only**
-/图库统计
-/导入图库'''
+/ark [十]连
+/ark 查询敌人[名称]
+/ark 查询材料[名称]
+/ark 更新 - 超级管理员限定
+'''
 
 # 声明本插件可配置的权限节点
 __plugin_auth_node__ = [
@@ -42,12 +41,13 @@ __plugin_auth_node__ = [
     # 'setu',
     # 'moepic'
 ]
-
+global_config = get_driver().config
+superusers = global_config.superusers
 # Init plugin export
 init_export(export(), __plugin_name__, __plugin_usage__, __plugin_auth_node__)
 
 # 注册事件响应器
-ark = on_command('arknights', aliases={'ark', 'ARK', '明日方舟', '方舟'}, permission=GROUP | PRIVATE_FRIEND | SUPERUSER,
+ark = on_command('arknights', aliases={'ark', 'ARK'}, permission=GROUP | PRIVATE_FRIEND | SUPERUSER,
                  priority=20,
                  block=True, state=init_permission_state(
         name='arknights',
@@ -59,11 +59,14 @@ ark_data_handler = ArkGameData()
 ark_enemy_handler = ArkEnemyHandler()
 ark_material_handler = ArkMaterialHandler()
 ark_operator_handler = ArkOperatorHandler()
+ark_gacha_handler = ArkGaChaHandler()
 handlers = [
     ark_operator_handler,
     ark_material_handler,
     ark_enemy_handler,
+    ark_gacha_handler,
 ]
+
 
 # 修改默认参数处理
 @ark.args_parser
@@ -91,14 +94,14 @@ async def handle_first_receive(bot: Bot, event: MessageEvent, state: T_State):
 async def handle_sub_command_args(bot: Bot, event: MessageEvent, state: T_State):
     sub_command = state['sub_command']
     if sub_command in ["更新", 'update']:
+        if event.user_id not in [int(x) for x in superusers]:
+            await ark.finish('该命令仅超级管理员可用哦')
+            return
         result = await ark_data_handler.update()
         await ark.finish(result)
     else:
         for handler in handlers:
-            await handler.init()
+            await handler.init(event.user_id)
             if utils.word_in_sentence(sub_command, handler.keyword):
-                result = await handler.action(sub_command)
+                result = await handler.action(sub_command, event.user_id)
                 await ark.finish(result.result)
-        # await ark.finish('没有这个命令哦, 请在【订阅/取消订阅/清空订阅/订阅列表】中选择并重新发送')
-
-

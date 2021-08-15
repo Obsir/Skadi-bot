@@ -2,7 +2,7 @@ from nonebot import MatcherGroup, on_message, on_request, on_notice, logger
 from nonebot.plugin import on
 from nonebot.typing import T_State
 from nonebot.adapters.cqhttp.bot import Bot
-from nonebot.adapters.cqhttp.event import Event
+from nonebot.adapters.cqhttp.event import Event, PokeNotifyEvent, PrivateMessageEvent, GroupMessageEvent
 from ..bot_database import DBHistory
 
 
@@ -15,19 +15,28 @@ message_history = Message_history.on_message()
 @message_history.handle()
 async def handle_message(bot: Bot, event: Event, state: T_State):
     try:
-        message_id = event.dict().get('message_id')
-        user_name = event.dict().get('sender').get('card')
+        message_id = event.message_id
+        user_name = event.sender.card
         if not user_name:
-            user_name = event.dict().get('sender').get('nickname')
-        time = event.dict().get('time')
-        self_id = event.dict().get('self_id')
+            user_name = event.sender.nickname
+        time = event.time
+        self_id = event.self_id
         post_type = event.get_type()
-        detail_type = event.dict().get(f'{event.get_type()}_type')
-        sub_type = event.dict().get('sub_type')
-        group_id = event.dict().get('group_id')
-        user_id = event.dict().get('user_id')
+        detail_type = eval(f'event.{event.get_type()}_type')
+        sub_type = event.sub_type
+        if isinstance(event, PrivateMessageEvent):
+            private_mode = True
+        elif isinstance(event, GroupMessageEvent):
+            private_mode = False
+        else:
+            private_mode = False
+        if not private_mode:
+            group_id = event.group_id
+        else:
+            group_id = None
+        user_id = event.user_id
         raw_data = repr(event)
-        msg_data = str(event.dict().get('message'))
+        msg_data = str(event.message)
         new_event = DBHistory(time=time, self_id=self_id, post_type=post_type, detail_type=detail_type)
         res = await new_event.add(sub_type=sub_type, event_id=message_id, group_id=group_id, user_id=user_id,
                                   user_name=user_name, raw_data=raw_data, msg_data=msg_data)
@@ -44,18 +53,27 @@ message_sent_history = on(type='message_sent', priority=101, block=True)
 @message_sent_history.handle()
 async def handle_message_sent_history(bot: Bot, event: Event, state: T_State):
     try:
-        user_name = event.dict().get('sender').get('card')
+        user_name = event.sender.card
         if not user_name:
-            user_name = event.dict().get('sender').get('nickname')
-        time = event.dict().get('time')
-        self_id = event.dict().get('self_id')
+            user_name = event.sender.nickname
+        time = event.time
+        self_id = event.self_id
         post_type = event.get_type()
-        detail_type = 'self_sent'
+        detail_type = eval(f'event.{event.get_type()}_type')
         sub_type = 'self'
-        group_id = event.dict().get('group_id')
-        user_id = event.dict().get('user_id')
+        if isinstance(event, PrivateMessageEvent):
+            private_mode = True
+        elif isinstance(event, GroupMessageEvent):
+            private_mode = False
+        else:
+            private_mode = False
+        if not private_mode:
+            group_id = event.group_id
+        else:
+            group_id = None
+        user_id = event.user_id
         raw_data = repr(event)
-        msg_data = str(event.dict().get('message'))
+        msg_data = str(event.message)
         new_event = DBHistory(time=time, self_id=self_id, post_type=post_type, detail_type=detail_type)
         res = await new_event.add(sub_type=sub_type, group_id=group_id, user_id=user_id, user_name=user_name,
                                   raw_data=raw_data, msg_data=msg_data)
@@ -72,15 +90,27 @@ notice_history = on_notice(priority=101, block=True)
 @notice_history.handle()
 async def handle_notice(bot: Bot, event: Event, state: T_State):
     try:
-        time = event.dict().get('time')
-        self_id = event.dict().get('self_id')
+        time = event.time
+        self_id = event.self_id
         post_type = event.get_type()
-        detail_type = event.dict().get(f'{event.get_type()}_type')
-        sub_type = event.dict().get('sub_type')
-        group_id = event.dict().get('group_id')
-        user_id = event.dict().get('user_id')
+        detail_type = eval(f'event.{event.get_type()}_type')
+        sub_type = event.sub_type
+        if isinstance(event, PrivateMessageEvent):
+            private_mode = True
+        elif isinstance(event, GroupMessageEvent):
+            private_mode = False
+        else:
+            private_mode = False
+        if not private_mode:
+            group_id = event.group_id
+        else:
+            group_id = None
+        user_id = event.user_id
         raw_data = repr(event)
-        msg_data = str(event.dict().get('message'))
+        if not isinstance(event, PokeNotifyEvent):
+            msg_data = str(event.message)
+        else:
+            msg_data = None
         new_event = DBHistory(time=time, self_id=self_id, post_type=post_type, detail_type=detail_type)
         res = await new_event.add(sub_type=sub_type, group_id=group_id, user_id=user_id, user_name=None,
                                   raw_data=raw_data, msg_data=msg_data)
@@ -97,15 +127,24 @@ request_history = on_request(priority=101, block=True)
 @request_history.handle()
 async def handle_request(bot: Bot, event: Event, state: T_State):
     try:
-        time = event.dict().get('time')
-        self_id = event.dict().get('self_id')
+        time = event.time
+        self_id = event.self_id
         post_type = event.get_type()
-        detail_type = event.dict().get(f'{event.get_type()}_type')
-        sub_type = event.dict().get('sub_type')
-        group_id = event.dict().get('group_id')
-        user_id = event.dict().get('user_id')
+        detail_type = eval(f'event.{event.get_type()}_type')
+        sub_type = event.sub_type
+        if isinstance(event, PrivateMessageEvent):
+            private_mode = True
+        elif isinstance(event, GroupMessageEvent):
+            private_mode = False
+        else:
+            private_mode = False
+        if not private_mode:
+            group_id = event.group_id
+        else:
+            group_id = None
+        user_id = event.user_id
         raw_data = repr(event)
-        msg_data = str(event.dict().get('message'))
+        msg_data = str(event.message)
         new_event = DBHistory(time=time, self_id=self_id, post_type=post_type, detail_type=detail_type)
         res = await new_event.add(sub_type=sub_type, group_id=group_id, user_id=user_id, user_name=None,
                                   raw_data=raw_data, msg_data=msg_data)
