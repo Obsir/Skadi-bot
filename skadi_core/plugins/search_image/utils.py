@@ -45,7 +45,7 @@ async def get_saucenao_identify_result(url: str) -> Result.ListResult:
                  'numres': 6,
                  'db': 999,
                  'url': url}
-    saucenao_result = await fetcher.get_json(url=API_URL, params=__payload)
+    saucenao_result = await fetcher.get_json(url=API_URL, params=__payload, force_proxy=True)
     if saucenao_result.error:
         logger.warning(f'get_saucenao_identify_result failed, Network error: {saucenao_result.info}')
         return Result.ListResult(error=True, info=f'Network error: {saucenao_result.info}', result=[])
@@ -67,7 +67,7 @@ async def get_saucenao_identify_result(url: str) -> Result.ListResult:
                 __result.append({'similarity': __item['header']['similarity'],
                                  'thumbnail': __item['header']['thumbnail'],
                                  'index_name': __item['header']['index_name'],
-                                 'ext_urls': __item['data']['ext_urls']})
+                                 'ext_urls': __item['data']['ext_urls'] if __item['data'].get('ext_urls') else None})
         except Exception as res_err:
             logger.warning(f"get_saucenao_identify_result failed: {repr(res_err)}, can not resolve results")
             continue

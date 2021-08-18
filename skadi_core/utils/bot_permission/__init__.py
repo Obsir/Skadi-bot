@@ -59,7 +59,7 @@ async def handle_plugin_permission(matcher: Matcher, bot: Bot, event: MessageEve
 
     # 检查权限节点
     if matcher_auth_node:
-        auth_node = '.'.join([matcher.module, matcher_auth_node])
+        auth_node = '.'.join([matcher.module.__module_name__, matcher_auth_node])
         # 分别检查用户及群组权限节点
         user_auth_checker = await check_auth_node(auth_id=user_id, auth_type='user', auth_node=auth_node)
         if private_mode:

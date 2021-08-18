@@ -3,8 +3,7 @@ from nonebot import logger
 from skadi_core.utils.plugin_utils import HttpFetcher, PicEncoder
 from skadi_core.utils.bot_database import Result
 
-
-API_URL = 'https://api.trace.moe/search'
+API_URL = 'https://api.trace.moe/search?anilistInfo'
 
 HEADERS = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
                          'Chrome/89.0.4389.114 Safari/537.36'}
@@ -35,29 +34,38 @@ async def get_identify_result(img_url: str) -> Result.ListResult:
         return Result.ListResult(error=True, info=result_json.info, result=[])
 
     _res = result_json.result
-    if not _res.get('docs'):
-        return Result.ListResult(error=True, info='no result found', result=[])
+    if _res.get('error'):
+        return Result.ListResult(error=True, info=_res.get('error'), result=[])
 
     _result = []
-    for item in _res.get('docs'):
+    for anime in _res.get('result')[:5]:
         try:
-            if item.get('similarity') < 0.85:
-                continue
+            synonyms = anime["anilist"]["synonyms"]
+            for x in synonyms:
+                _count_ch = 0
+                for word in x:
+                    if "\u4e00" <= word <= "\u9fff":
+                        _count_ch += 1
+                if _count_ch > 3:
+                    anime_name = x
+                    break
+            else:
+                anime_name = anime["anilist"]["title"]["native"]
+            from_ = int(anime["from"])
+            episode = anime["episode"]
+            m, s = divmod(from_, 60)
+            similarity = '{:.2%}'.format(anime["similarity"])
             _result.append({
-                'raw_at': item.get('at'),
-                'at': str(datetime.timedelta(seconds=item.get('at'))),
-                'anilist_id': item.get('anilist_id'),
-                'anime': item.get('anime'),
-                'episode': item.get('episode'),
-                'tokenthumb': item.get('tokenthumb'),
-                'filename': item.get('filename'),
-                'similarity': item.get('similarity'),
-                'title_native': item.get('title_native'),
-                'title_chinese': item.get('title_chinese'),
-                'is_adult': item.get('is_adult'),
+                'at': (m, s),
+                'similarity': similarity,
+                'episode': episode if episode else "?",
+                'anime_name': anime_name,
+                'is_adult': anime['anilist']['isAdult'],
+                'image': anime['image'],
+                'video': anime['video'],
             })
         except Exception as e:
-            logger.warning(f'result parse failed: {repr(e)}, raw_json: {item}')
+            logger.warning(f'result parse failed: {repr(e)}, raw_json: {anime}')
             continue
 
     return Result.ListResult(error=False, info='Success', result=_result)

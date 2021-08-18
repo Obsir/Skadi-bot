@@ -95,7 +95,7 @@ async def handle_first_receive(bot: Bot, event: MessageEvent, state: T_State):
 async def handle_pixiv(bot: Bot, event: MessageEvent, state: T_State):
     mode = state['mode']
     if mode == '日榜':
-        await pixiv.send('稍等, 正在下载图片~')
+        # await pixiv.send('稍等, 正在下载图片~')
         rank_result = await PixivIllust.daily_ranking()
         if rank_result.error:
             logger.warning(f"User: {event.user_id} 获取Pixiv Rank失败, {rank_result.info}")
@@ -117,7 +117,7 @@ async def handle_pixiv(bot: Bot, event: MessageEvent, state: T_State):
             if rank >= 10:
                 break
     elif mode == '周榜':
-        await pixiv.send('稍等, 正在下载图片~')
+        # await pixiv.send('稍等, 正在下载图片~')
         rank_result = await PixivIllust.weekly_ranking()
         if rank_result.error:
             logger.warning(f"User: {event.user_id} 获取Pixiv Rank失败, {rank_result.info}")
@@ -139,7 +139,7 @@ async def handle_pixiv(bot: Bot, event: MessageEvent, state: T_State):
             if rank >= 10:
                 break
     elif mode == '月榜':
-        await pixiv.send('稍等, 正在下载图片~')
+        # await pixiv.send('稍等, 正在下载图片~')
         rank_result = await PixivIllust.monthly_ranking()
         if rank_result.error:
             logger.warning(f"User: {event.user_id} 获取Pixiv Rank失败, {rank_result.info}")
@@ -185,13 +185,14 @@ async def handle_pixiv(bot: Bot, event: MessageEvent, state: T_State):
                 logger.warning(f"User: {event.user_id} 获取Pixiv资源 {pid} 被拒绝, 没有 allow_r18 权限")
                 await pixiv.finish('R18禁止! 不准开车车!')
 
-        await pixiv.send('稍等, 正在下载图片~')
+        # await pixiv.send('稍等, 正在下载图片~')
         illust_result = await illust.pic_2_base64()
         if illust_result.success():
             msg = illust_result.info
             img_seg = MessageSegment.image(illust_result.result)
             # 发送图片和图片信息
-            await pixiv.send(Message(img_seg).append(msg))
+            # await pixiv.send(Message(img_seg).append(msg))
+            await pixiv.send(Message(img_seg))
         else:
             logger.warning(f"User: {event.user_id} 获取Pixiv资源失败, 网络超时或 {pid} 不存在, {illust_result.info}")
             await pixiv.send('加载失败, 网络超时或没有这张图QAQ')
@@ -252,7 +253,7 @@ async def handle_pixiv_dl(bot: Bot, event: GroupMessageEvent, state: T_State):
     if re.match(r'^\d+$', pid):
         pid = int(pid)
         logger.debug(f'获取Pixiv资源: {pid}.')
-        await pixiv_dl.send('稍等, 正在下载图片~')
+        # await pixiv_dl.send('稍等, 正在下载图片~')
         download_result = await PixivIllust(pid=pid).download_illust(page=page)
         if download_result.error:
             logger.warning(f"User: {event.user_id} 下载Pixiv资源失败, 网络超时或 {pid} 不存在, {download_result.info}")

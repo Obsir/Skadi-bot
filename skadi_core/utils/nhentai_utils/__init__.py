@@ -46,7 +46,7 @@ class Nhentai(object):
         headers.update({'referer': search_url})
 
         fetcher = HttpFetcher(timeout=10, flag='nhentai_search', headers=headers)
-        html_result = await fetcher.get_text(url=search_url, params=payload_keyword)
+        html_result = await fetcher.get_text(url=search_url, params=payload_keyword, force_proxy=True)
         if html_result.error:
             return Result.ListResult(error=True, info=f'Search keyword failed, {html_result.info}', result=[])
 
@@ -86,7 +86,7 @@ class NhentaiGallery(Nhentai):
     async def get_data(self) -> Result.DictResult:
         url = f'https://nhentai.net/g/{self.gallery_id}/1/'
         fetcher = HttpFetcher(timeout=10, flag='nhentai_get_gallery_data', headers=self.HEADERS)
-        html_result = await fetcher.get_text(url=url)
+        html_result = await fetcher.get_text(url=url, force_proxy=True)
         if html_result.error:
             return Result.DictResult(error=True, info=f'访问本子页面时异常，似乎网络不行. {html_result.info}', result={})
         html_text = html_result.result
@@ -229,7 +229,7 @@ class NhentaiGallery(Nhentai):
                     logger.debug(f'Nhentai | File: {self.gallery_id}/{file_name} exists, pass.')
                     continue
 
-                tasks.append(fetcher.download_file(url=url, path=file_path, file_name=file_name))
+                tasks.append(fetcher.download_file(url=url, path=file_path, file_name=file_name, force_proxy=True))
 
             # 开始下载
             download_result = await asyncio.gather(*tasks)

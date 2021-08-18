@@ -102,32 +102,26 @@ async def handle_draw(bot: Bot, event: MessageEvent, state: T_State):
 
     for item in res.result:
         try:
-            raw_at = item.get('raw_at')
             at = item.get('at')
-            anilist_id = item.get('anilist_id')
-            anime = item.get('anime')
+            anime = item.get('anime_name')
             episode = item.get('episode')
-            tokenthumb = item.get('tokenthumb')
-            filename = item.get('filename')
+            thumb_img_url = item.get('image')
             similarity = item.get('similarity')
-            title_native = item.get('title_native')
-            title_chinese = item.get('title_chinese')
             is_adult = item.get('is_adult')
-
-            thumb_img_url = f'https://trace.moe/thumbnail.php?' \
-                            f'anilist_id={anilist_id}&file={filename}&t={raw_at}&token={tokenthumb}'
-
             img_b64 = await pic_2_base64(thumb_img_url)
+            if is_adult:
+                continue
             if not img_b64.success():
-                msg = f"识别结果: {anime}\n\n原始名称:【{title_native}】\n中文名称:【{title_chinese}】\n" \
-                      f"相似度: {int(similarity)}\n\n来源文件: {filename}\nEpisode: 【{episode}】\n" \
-                      f"截图时间位置: {at}\n绅士: {is_adult}"
+                logger.info(f"{group_id} / {event.user_id} 使用了search_anime, 获取缩略图时发生错误: {img_b64.info}")
+                msg = f"识别结果: {anime}\n\n" \
+                      f"相似度: {similarity}\n\nEpisode: 【{episode}】\n" \
+                      f"截图时间位置: {at[0]}:{at[1]}\n"
                 await search_anime.send(msg)
             else:
                 img_seg = MessageSegment.image(img_b64.result)
-                msg = f"识别结果: {anime}\n\n原始名称:【{title_native}】\n中文名称:【{title_chinese}】\n" \
-                      f"相似度: {int(similarity)}\n\n来源文件: {filename}\nEpisode: 【{episode}】\n" \
-                      f"截图时间位置: {at}\n绅士: {is_adult}\n{img_seg}"
+                msg = f"识别结果: {anime}\n\n" \
+                      f"相似度: {similarity}\n\nEpisode: 【{episode}】\n" \
+                      f"截图时间位置: {at[0]}:{at[1]}\n{img_seg}"
                 await search_anime.send(Message(msg))
         except Exception as e:
             logger.error(f"{group_id} / {event.user_id} 使用命令search_anime时发生了错误: {repr(e)}")

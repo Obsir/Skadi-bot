@@ -109,7 +109,7 @@ def do_add_sub(add_sub: Type[Matcher]):
     @add_sub.handle()
     async def add_sub_process(bot: Bot, event: Event, state: T_State):
         config = Config()
-        config.add_subscribe(state.get('_user_id') or event.group_id, user_type='group',
+        config.add_subscribe(event.group_id if isinstance(event, GroupMessageEvent) else state.get('_user_id'), user_type='group',
                              target=state['id'],
                              target_name=state['name'], target_type=state['platform'],
                              cats=state.get('cats', []), tags=state.get('tags', []))
@@ -120,7 +120,7 @@ def do_query_sub(query_sub: Type[Matcher]):
     @query_sub.handle()
     async def _(bot: Bot, event: Event, state: T_State):
         config: Config = Config()
-        sub_list = config.list_subscribe(state.get('_user_id') or event.group_id, "group")
+        sub_list = config.list_subscribe(event.group_id if isinstance(event, GroupMessageEvent) else state.get('_user_id'), "group")
         res = '订阅的帐号为：\n'
         for sub in sub_list:
             res += '{} {} {}'.format(sub['target_type'], sub['target_name'], sub['target'])
@@ -138,7 +138,7 @@ def do_del_sub(del_sub: Type[Matcher]):
     @del_sub.handle()
     async def send_list(bot: Bot, event: Event, state: T_State):
         config: Config = Config()
-        sub_list = config.list_subscribe(state.get('_user_id') or event.group_id, "group")
+        sub_list = config.list_subscribe(event.group_id if isinstance(event, GroupMessageEvent) else state.get('_user_id'), "group")
         res = '订阅的帐号为：\n'
         state['sub_table'] = {}
         for index, sub in enumerate(sub_list, 1):
@@ -158,7 +158,7 @@ def do_del_sub(del_sub: Type[Matcher]):
         try:
             index = int(str(event.get_message()).strip())
             config = Config()
-            config.del_subscribe(state.get('_user_id') or event.group_id, 'group', **state['sub_table'][index])
+            config.del_subscribe(event.group_id if isinstance(event, GroupMessageEvent) else state.get('_user_id'), 'group', **state['sub_table'][index])
         except Exception as e:
             await del_sub.reject('删除错误')
             logger.warning(e)

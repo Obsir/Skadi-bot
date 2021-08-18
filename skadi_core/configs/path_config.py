@@ -6,6 +6,9 @@ def init_plugin_res_path(bot_config):
     draw_card_data_path = os.path.join(root_path, 'draw_card')
     if not os.path.exists(draw_card_data_path):
         os.makedirs(draw_card_data_path)
+    genshin_data_path = os.path.join(root_path, 'genshin')
+    if not os.path.exists(genshin_data_path):
+        os.makedirs(genshin_data_path)
     ark_gamedata_path = os.path.join(root_path, 'arknights')
     if not os.path.exists(ark_gamedata_path):
         os.makedirs(ark_gamedata_path)
@@ -31,3 +34,4 @@ def init_plugin_res_path(bot_config):
     bot_config.hk_reporter_config_path = hk_reporter_config_path
     bot_config.ark_gamedata_path = ark_gamedata_path
     bot_config.draw_card_data_path = draw_card_data_path
+    bot_config.genshin_data_path = genshin_data_path
