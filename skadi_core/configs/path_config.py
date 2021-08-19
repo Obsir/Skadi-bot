@@ -3,6 +3,9 @@ import os
 
 def init_plugin_res_path(bot_config):
     root_path = bot_config.bot_res_path
+    buff_163_path = os.path.join(root_path, 'buff_163')
+    if not os.path.exists(buff_163_path):
+        os.makedirs(buff_163_path)
     draw_card_data_path = os.path.join(root_path, 'draw_card')
     if not os.path.exists(draw_card_data_path):
         os.makedirs(draw_card_data_path)
@@ -27,6 +30,7 @@ def init_plugin_res_path(bot_config):
     hk_reporter_config_path = os.path.join(root_path, 'hk_reporter_config')
     if not os.path.exists(hk_reporter_config_path):
         os.makedirs(hk_reporter_config_path)
+    bot_config.buff_163_path = buff_163_path
     bot_config.pixiv_path = pixiv_path
     bot_config.stick_path = stick_path
     bot_config.nhentai_path = nhentai_path
