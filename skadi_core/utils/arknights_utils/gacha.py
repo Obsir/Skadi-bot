@@ -352,8 +352,8 @@ class ArkGaChaHandler:
 
                 result_list.append(op_dt)
 
-            # res_img = '%s/%s' % (gacha_result, create_gacha_result(result_list))
-            # reply.insert(0, Image(res_img))
+            res_img = '%s/%s' % (gacha_result, create_gacha_result(result_list))
+            reply.insert(0, Image(res_img))
 
         return Result.AnyResult(error=False, info='', result=result)
 

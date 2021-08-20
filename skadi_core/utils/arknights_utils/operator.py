@@ -171,15 +171,15 @@ class ArkOperatorHandler:
                         idx = ('' if index + 1 >= 10 else '0') + str(index + 1)
                         text += '%s [ %s - %s ] %s\n' % (idx, item['skin_group'], item['skin_name'], item['skin_usage'])
 
-                    text += '\n请和阿米娅说「阿米娅查看%s第 N 个皮肤」查看详情吧' % info['name']
+                    text += '\n请和我说「查看%s第 N 个皮肤」查看详情吧' % info['name']
 
                     return Result.AnyResult(error=False, info='', result=text)
 
             if word_in_sentence(message, ['精英', '专精']):
-                return Result.AnyResult(error=False, info='', result='博士，要告诉阿米娅精英或专精等级哦')
+                return Result.AnyResult(error=False, info='', result='博士，要告诉我精英或专精等级哦')
 
             if word_in_sentence(message, ['语音']):
-                return Result.AnyResult(error=False, info='', result='博士，要告诉阿米娅语音的详细标题哦')
+                return Result.AnyResult(error=False, info='', result='博士，要告诉我语音的详细标题哦')
 
             if info['skill'] or info['skill_index']:
                 return Result.AnyResult(error=False, info='', result='博士，要查询干员技能资料的话，请加上【技能等级】或者加上【技能等级和“材料”关键字】哦')

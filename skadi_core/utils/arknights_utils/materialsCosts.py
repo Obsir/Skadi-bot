@@ -1,11 +1,13 @@
 import os
 
 from .initData import InitData
-from .utils import text_to_pinyin, remove_punctuation
+from .utils import text_to_pinyin, remove_punctuation, create_image
 from .utils import ARK_GAMEDATA_PATH
 import aiofiles
 from ..bot_database import DBArknights, Result
 from nonebot import logger
+from nonebot.adapters.cqhttp import MessageSegment
+import asyncio
 
 material_images_source = os.path.join(ARK_GAMEDATA_PATH, 'images', 'materials')
 skill_images_source = os.path.join(ARK_GAMEDATA_PATH, 'images', 'skills')
@@ -119,7 +121,7 @@ class ArkMaterialCostsHandler:
 
             if len(skill_info):
                 if name == '' and len(skill_info) > 1:
-                    text += '博士，目前存在 %d 个干员拥有【%s】这个技能哦，请用比如「干员一技能专三」这种方式和阿米娅描述吧' % (len(skill_info), skill)
+                    text += '博士，目前存在 %d 个干员拥有【%s】这个技能哦，请用比如「干员一技能专三」这种方式和我描述吧' % (len(skill_info), skill)
                 item = skill_info[0]
                 if name == '':
                     name = item.operator_name
@@ -138,7 +140,8 @@ class ArkMaterialCostsHandler:
         if _res.success():
             logger.debug(f'ArkMaterialCostsHandler | 获取干员 {name} - 精英化{level}阶段材料 成功')
         else:
-            logger.error(f'ArkMaterialCostsHandler | 获取干员 {name} - 精英化{level}阶段材料 失败, error: {_res.info}, error: {_res.info}')
+            logger.error(
+                f'ArkMaterialCostsHandler | 获取干员 {name} - 精英化{level}阶段材料 失败, error: {_res.info}, error: {_res.info}')
         result = _res.result
 
         text = ''
@@ -149,7 +152,7 @@ class ArkMaterialCostsHandler:
             for item in result:
                 if item['material_name'] not in material_name:
                     text += '%s%s X %s\n\n' % (' ' * 12, item['material_name'], item['use_number'])
-                    images.append(material_images_source + item['material_icon'] + '.png')
+                    images.append(os.path.join(material_images_source, item['material_icon'] + '.png'))
                     material_name.append(item['material_name'])
 
             icons = []
@@ -161,7 +164,7 @@ class ArkMaterialCostsHandler:
                         'pos': (5, 26 + index * 34)
                     })
 
-            text = text
+            text = MessageSegment.image(await asyncio.get_event_loop().run_in_executor(None, create_image, text, icons))
         else:
             text += '博士，暂时没有找到相关的档案哦~'
 
@@ -172,7 +175,7 @@ class ArkMaterialCostsHandler:
             await self.init()
         mastery = {1: '一', 2: '二', 3: '三'}
         db_ark = DBArknights()
-        text, name, skill_index = self.find_repeat_skill_name(name, skill, skill_index)
+        text, name, skill_index = await self.find_repeat_skill_name(name, skill, skill_index)
 
         if text:
             return text
@@ -195,13 +198,14 @@ class ArkMaterialCostsHandler:
                 skill_name = item['skill_name']
                 if skill_name not in skills:
                     skills[skill_name] = []
-                    skill_images.append(skill_images_source + item['skill_icon'] + '.png')
+                    skill_images.append(os.path.join(skill_images_source, item['skill_icon'] + '.png'))
+
                 skills[skill_name].append(item)
             for name in skills:
                 text += '%s%s\n\n' % (' ' * 15, name)
                 for item in skills[name]:
                     text += '————%s%s X %s\n\n' % (' ' * 15, item['material_name'], item['use_number'])
-                    material_images.append(material_images_source + item['material_icon'] + '.png')
+                    material_images.append(os.path.join(material_images_source, item['material_icon'] + '.png'))
 
             for index, item in enumerate(skill_images):
                 if os.path.exists(item):
@@ -219,11 +223,11 @@ class ArkMaterialCostsHandler:
                     icons.append({
                         'path': item,
                         'size': (35, 35),
-                        'pos': (73, 60 + i)
+                        'pos': (55, 60 + i)
                     })
                 i += n
 
-            text = text
+            text = MessageSegment.image(await asyncio.get_event_loop().run_in_executor(None, create_image, text, icons))
         else:
             text += '博士，没有找到干员%s技能专精%s需要的材料清单' % (name, mastery[level])
 

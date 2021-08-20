@@ -1,5 +1,6 @@
 import re
 from nonebot import logger
+from nonebot.adapters.cqhttp import MessageSegment
 from .game_data import ArkGameData
 from .utils import *
 from ..bot_database import Result
@@ -88,13 +89,13 @@ class ArkEnemyHandler:
                 icons = [
                     {
 
-                        'path': os.path.join(ARK_GAMEDATA_PATH, 'images', 'enemy_name', '%s.png' % data['enemyId']),
+                        'path': os.path.join(ARK_GAMEDATA_PATH, 'images', 'enemy', '%s.png' % data['enemyId']),
                         'size': (80, 80),
                         'pos': (10, 30)
                     }
                 ]
                 result = await asyncio.get_event_loop().run_in_executor(None, create_image, text, icons)
-                return Result.AnyResult(error=False, info="", result="base64://" + result)
+                return Result.AnyResult(error=False, info="", result=MessageSegment.image(result))
             except Exception as e:
                 logger.error(f'ArkEnemyHandler | error: {e}')
                 return Result.AnyResult(error=True, info=e.__repr__(), result=None)

@@ -1,10 +1,11 @@
 import os
-from .utils import ARK_GAMEDATA_PATH, find_similar_string, orm_get
+from .utils import ARK_GAMEDATA_PATH, find_similar_string, create_image
 from ..bot_database import DBArknights, Result
 import asyncio
 from nonebot import logger
 import aiofiles
 import jieba
+from nonebot.adapters.cqhttp import MessageSegment
 
 material_images_source = os.path.join(ARK_GAMEDATA_PATH, 'images', 'materials')
 if not os.path.exists(material_images_source):
@@ -98,7 +99,7 @@ class ArkMaterialHandler:
         text = '博士，为你找到材料【%s】的档案\n\n\n\n\n\n\n' % name
         icons = [
             {
-                'path': material_images_source + material.material_icon + '.png',
+                'path': os.path.join(material_images_source, material.material_icon + '.png'),
                 'size': (80, 80),
                 'pos': (10, 30)
             }
@@ -111,8 +112,7 @@ class ArkMaterialHandler:
                 text += '可在【%s】通过以下配方%s：\n\n' % ty[made[0]['made_type']]
                 for item in made:
                     text += '%s%s X %s\n\n' % (' ' * 12, item['material_name'], item['use_number'])
-                    material_images.append(material_images_source + item['material_icon'] + '.png')
-
+                    material_images.append(os.path.join(material_images_source, item['material_icon'] + '.png'))
             if source:
                 text += '可在以下非活动地图掉落：\n\n'
                 source = {item['stage_code']: item for item in source}
@@ -129,5 +129,5 @@ class ArkMaterialHandler:
                     })
 
         text += '\n' + material.material_desc
-
-        return Result.AnyResult(error=False, info="", result=text)
+        result = await asyncio.get_event_loop().run_in_executor(None, create_image, text, icons)
+        return Result.AnyResult(error=False, info="", result=MessageSegment.image(result))

@@ -308,7 +308,7 @@ class ArkGameData:
         with open(path, mode='r', encoding='utf-8') as src:
             return json.load(src)
 
-    async def get_pic(self, name, _type, _param=''):
+    async def get_pic(self, name, _type, _param='', proxy=False):
         url = '%s/%s.png%s' % (self.PICS_SOURCE, name, _param)
         dir_path = '%s/%s' % (self.PICS_PATH, _type)
         if not os.path.exists(dir_path):
@@ -316,18 +316,29 @@ class ArkGameData:
         path = '%s/%s.png' % (dir_path, name.split('/')[-1])
         fetcher = HttpFetcher(timeout=30, flag='arknights_game_data', headers=self.HEADERS)
         if os.path.exists(path) is False:
-            data = await fetcher.get_bytes(url)
+            data = await fetcher.get_bytes(url, force_proxy=proxy)
             if data.success():
                 async with aiofiles.open(path, mode='wb') as _pic:
                     await _pic.write(data.result)
-                logger.debug(f'ArkGameData | 资源下载成功: [{name}]')
-                return True
+                try:
+                    Image.open(path)
+                    logger.debug(f'ArkGameData | 资源下载成功: [{name}]')
+                    return True
+                except Exception as e:
+                    logger.error(f'ArkGameData | 资源下载失败: [{name}], url: {url}, error: {e}')
+                    return False
             else:
                 logger.error(f'ArkGameData | 资源下载失败: [{name}], error: {data.info}')
                 return False
         else:
-            logger.error(f'ArkGameData | 资源已存在: [{name}]')
-            return True
+            try:
+                Image.open(path)
+                logger.warning(f'ArkGameData | 资源已存在: [{name}]')
+                return True
+            except Exception as e:
+                logger.error(f'ArkGameData | 资源下载失败: [{name}], url: {url}, 尝试重新下载')
+                os.remove(path)
+                return await self.get_pic(name, _type, _param, proxy=True)
 
     async def save_operator_photo(self, operators=None):
         if operators is None:
@@ -345,10 +356,14 @@ class ArkGameData:
 
             logger.debug('ArkGameData | 正在下载干员 [%s] 图片资源 - 头像' % operator.name)
             res = await self.get_pic('char/profile/' + operator.id, 'avatars')
+            if not res:
+                logger.error('ArkGameData | 干员 [%s] 图片资源 - 头像 下载失败' % operator.name)
             avatars_count += 1 if res else 0
 
             logger.debug('ArkGameData | 正在下载干员 [%s] 图片资源 - 半身照' % operator.name)
             res = await self.get_pic('char/halfPic/%s_1' % operator.id, 'photo', '?x-oss-process=style/small-test')
+            if not res:
+                logger.error('ArkGameData | 干员 [%s] 图片资源 - 半身照 下载失败' % operator.name)
             photo_count += 1 if res else 0
 
             skills_list = operator.skills(None)[0]
@@ -356,6 +371,8 @@ class ArkGameData:
             for skill in skills_list:
                 logger.debug(f'ArkGameData | 正在下载干员 [{operator.name}] 图片资源 - 技能图标 [{skill["skill_name"]}]')
                 res = await self.get_pic('skills/pics/' + skill['skill_icon'], 'skills')
+                if not res:
+                    logger.error(f'ArkGameData | 干员 [%s] 图片资源 - 技能图标 [{skill["skill_name"]}] 下载失败' % operator.name)
                 skills_count += 1 if res else 0
 
             skins_list = operator.skins(None)
@@ -364,6 +381,8 @@ class ArkGameData:
                 logger.debug(
                     f'ArkGameData | 正在下载干员 [{operator.name}] 图片资源 - 立绘 [{skin["skin_group"]}][{skin["skin_name"]}]')
                 res = await self.get_pic('char/set/' + skin['skin_image'], 'picture')
+                if not res:
+                    logger.error(f'ArkGameData | 干员 [%s] 图片资源 - 立绘 [{skin["skin_group"]}][{skin["skin_name"]}] 下载失败' % operator.name)
                 skins_count += 1 if res else 0
 
         logger.debug('ArkGameData | 干员图片资源下载完成')
@@ -396,7 +415,9 @@ class ArkGameData:
                     'material_icon': icon_name,
                     'material_desc': item['usage']
                 })
-                await self.get_pic('item/pic/' + icon_name, 'materials')
+                res = await self.get_pic('item/pic/' + icon_name, 'materials')
+                if not res:
+                    logger.error('ArkGameData | 材料 [%s] 图片资源 下载失败' % material_name)
 
                 for drop in item['stageDropList']:
                     materials_source.append({
@@ -481,7 +502,9 @@ class ArkGameData:
         for name, item in enemies.items():
             logger.debug(f'ArkGameData | 正在下载敌人 [{name}] 图片资源 成功')
 
-            res = await self.get_pic('enemy_name/pic/' + item['info']['enemyId'], 'enemy_name', '?x-oss-process=style/jpg-test')
+            res = await self.get_pic('enemy/pic/' + item['info']['enemyId'], 'enemy', '?x-oss-process=style/jpg-test')
+            if not res:
+                logger.error('ArkGameData | 敌人 [%s] 图片资源 - 下载失败' % name)
             success += 1 if res else 0
             total += 1
 

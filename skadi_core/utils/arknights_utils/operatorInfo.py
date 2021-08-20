@@ -1,11 +1,14 @@
 import os
 import re
-from .utils import ARK_GAMEDATA_PATH, chinese_to_digits, split_text
+from .utils import ARK_GAMEDATA_PATH, chinese_to_digits, split_text, create_image, picpath2b64
+from nonebot.adapters.cqhttp import MessageSegment
 from ..bot_database import DBArknights, Result
 from .initData import InitData
 from .materialsCosts import ArkMaterialCostsHandler, skill_images_source
 from nonebot import logger
 import aiofiles
+import asyncio
+
 avatars_images_source = os.path.join(ARK_GAMEDATA_PATH, 'images', 'avatars')
 if not os.path.exists(avatars_images_source):
     os.makedirs(avatars_images_source)
@@ -91,7 +94,7 @@ class ArkOperatorInfoHandler:
         text = '博士，为您找到以下干员资料\n\n\n\n\n\n\n'
         icons = [
             {
-                'path': avatars_images_source + base.operator_avatar + '.png',
+                'path': os.path.join(avatars_images_source, base.operator_avatar + '.png'),
                 'size': (80, 80),
                 'pos': (10, 30)
             }
@@ -145,8 +148,9 @@ class ArkOperatorInfoHandler:
 
             text += content
             icons += skill_icons
-
-        return Result.AnyResult(error=False, info="", result=text)
+            result = MessageSegment.image(
+                await asyncio.get_event_loop().run_in_executor(None, create_image, text, icons))
+        return Result.AnyResult(error=False, info="", result=result)
 
     async def get_skill_data(self, name, skill, level, skill_index=0) -> Result.AnyResult:
         if not self.init_finish:
@@ -170,7 +174,9 @@ class ArkOperatorInfoHandler:
             content, icons = self.load_skill_content(result, 28)
 
             text += content
-            return Result.AnyResult(error=False, info="", result=text)
+            result = MessageSegment.image(
+                await asyncio.get_event_loop().run_in_executor(None, create_image, text, icons))
+            return Result.AnyResult(error=False, info="", result=result)
         else:
             return Result.AnyResult(error=False, info="",
                                     result='博士，没有找到干员%s技能%s的数据' % (name, InitData.skill_level[level]))
@@ -189,7 +195,7 @@ class ArkOperatorInfoHandler:
             skill_name = item['skill_name']
             if skill_name not in skills:
                 skills[skill_name] = []
-                skill_images.append(skill_images_source + item['skill_icon'] + '.png')
+                skill_images.append(os.path.join(skill_images_source, item['skill_icon'] + '.png'))
             skills[skill_name].append(item)
 
         for name in skills:
@@ -245,10 +251,11 @@ class ArkOperatorInfoHandler:
             text += ' -- ' + skin.skin_desc
 
             pic = os.path.join(ARK_GAMEDATA_PATH, 'images', 'picture', '%s.png' % skin.skin_image)
-            # if os.path.exists(pic):
-            #     reply.append(Reply(Image(pic), at=False))
-            # else:
-            #     reply.append(Reply('暂时无法获取到立绘图片～', at=False))
+
+            if os.path.exists(pic):
+                text = MessageSegment.image(picpath2b64(pic))
+            else:
+                text = '暂时无法获取到立绘图片'
 
             return Result.AnyResult(error=False, info='', result=text)
 

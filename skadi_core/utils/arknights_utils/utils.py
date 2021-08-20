@@ -162,6 +162,19 @@ def pic2b64(pic: Image) -> str:
     base64_str = base64.b64encode(buf.getvalue()).decode()
     return "base64://" + base64_str
 
+def picpath2b64(pic: str) -> str:
+    """
+    说明：
+        PIL图片转base64
+    参数：
+        :param pic: 通过PIL打开的图片文件
+    """
+    buf = BytesIO()
+    pic = Image.open(pic)
+    pic.save(buf, format="PNG")
+    base64_str = base64.b64encode(buf.getvalue()).decode()
+    return "base64://" + base64_str
+
 
 character_relation = {
     '零': 0,
